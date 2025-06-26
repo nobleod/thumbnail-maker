@@ -73,7 +73,6 @@
             text-stroke: 2px #fff;
             text-shadow: 2px 2px 6px #000, 0px 4px 12px #000;
             line-height: 1.2;
-            text-indent: 0px;
         }
         .slider-container {
             display: flex;
@@ -138,14 +137,13 @@
         .header-gradient {
             background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 50%, #06b6d4 100%);
         }
-        /* Ensure bgImg is behind border and logo */
         #bgImg {
             position: absolute;
             left: 50%;
             top: 50%;
             transform: translate(-50%,-50%);
             max-width: none;
-            z-index: 5; /* Less than border, more than default */
+            z-index: 5;
             pointer-events: none;
         }
     </style>
@@ -297,10 +295,10 @@
                 <div class="mb-4 flex gap-2">
                     <button id="indentLeftBtn" class="px-3 py-1 bg-slate-700 rounded text-sm">Indent Left</button>
                     <button id="indentRightBtn" class="px-3 py-1 bg-slate-700 rounded text-sm">Indent Right</button>
-                    <span id="indentValue" class="slider-value">0px</span>
+                    <span id="indentValue" class="slider-value">50%</span>
                 </div>
             </div>
-            <button id="downloadBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
+            <button id="downloadBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg flex items-center just[...]
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -348,7 +346,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const indentLeftBtn = document.getElementById('indentLeftBtn');
     const indentRightBtn = document.getElementById('indentRightBtn');
     const indentValue = document.getElementById('indentValue');
-    let currentIndent = 0;
 
     borderColorPicker.addEventListener('input', function () {
         borderFrame.style.borderColor = this.value;
@@ -388,22 +385,29 @@ document.addEventListener('DOMContentLoaded', function () {
     textLeftSlider.addEventListener('input', function () {
         textLeftValue.textContent = this.value + '%';
         textOverlay.style.left = this.value + '%';
+        indentValue.textContent = this.value + '%';
     });
     textTopSlider.addEventListener('input', function () {
         textTopValue.textContent = this.value + '%';
         textOverlay.style.top = this.value + '%';
     });
 
-    // Indent controls
+    // Indent controls now move the whole block by adjusting the slider
     indentLeftBtn.addEventListener('click', function () {
-        currentIndent = Math.max(currentIndent - 20, -200);
-        textOverlay.style.textIndent = currentIndent + 'px';
-        indentValue.textContent = currentIndent + 'px';
+        let val = parseInt(textLeftSlider.value, 10);
+        val = Math.max(val - 10, 0);
+        textLeftSlider.value = val;
+        textLeftValue.textContent = val + '%';
+        textOverlay.style.left = val + '%';
+        indentValue.textContent = val + '%';
     });
     indentRightBtn.addEventListener('click', function () {
-        currentIndent = Math.min(currentIndent + 20, 200);
-        textOverlay.style.textIndent = currentIndent + 'px';
-        indentValue.textContent = currentIndent + 'px';
+        let val = parseInt(textLeftSlider.value, 10);
+        val = Math.min(val + 10, 100);
+        textLeftSlider.value = val;
+        textLeftValue.textContent = val + '%';
+        textOverlay.style.left = val + '%';
+        indentValue.textContent = val + '%';
     });
 
     // Background image
@@ -432,13 +436,9 @@ document.addEventListener('DOMContentLoaded', function () {
     textLineSpacingValue.textContent = (textLineSpacingSlider.value/100).toFixed(2);
     textLeftValue.textContent = textLeftSlider.value + '%';
     textTopValue.textContent = textTopSlider.value + '%';
-    indentValue.textContent = '0px';
-    textOverlay.style.textIndent = '0px';
-
-    // Set initial line spacing
+    indentValue.textContent = textLeftSlider.value + '%';
+    textOverlay.style.left = textLeftSlider.value + '%';
     textOverlay.style.lineHeight = (textLineSpacingSlider.value/100).toFixed(2);
-
-    // Download can use your existing logic if needed
 });
 </script>
 </body>
