@@ -36,16 +36,16 @@
             border: 12px solid #3b82f6;
             pointer-events: none;
             transition: all 0.3s ease;
-            z-index: 1;
+            z-index: 10; /* Higher than bgImg */
         }
         .logo {
             position: absolute;
-            width: 120px;
-            height: 120px;
+            width: 207px;
+            height: 207px;
             left: 10%;
             top: 10%;
             transform: translate(-50%, -50%);
-            z-index: 3;
+            z-index: 20;
             pointer-events: none;
         }
         .logo img {
@@ -65,15 +65,15 @@
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
-            z-index: 4;
+            z-index: 30;
             white-space: pre-wrap;
             text-align: center;
             max-width: 80%;
             -webkit-text-stroke: 2px #fff;
             text-stroke: 2px #fff;
-            /* Subtle black shadow only */
             text-shadow: 2px 2px 6px #000, 0px 4px 12px #000;
             line-height: 1.2;
+            text-indent: 0px;
         }
         .slider-container {
             display: flex;
@@ -138,6 +138,16 @@
         .header-gradient {
             background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 50%, #06b6d4 100%);
         }
+        /* Ensure bgImg is behind border and logo */
+        #bgImg {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%,-50%);
+            max-width: none;
+            z-index: 5; /* Less than border, more than default */
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="flex flex-col">
@@ -165,8 +175,8 @@
                 <div class="flex justify-center">
                     <div class="thumbnail-container glow" id="thumbnailContainer">
                         <div class="thumbnail" id="thumbnail">
+                            <img id="bgImg" style="display:none;">
                             <div class="border-frame" id="borderFrame"></div>
-                            <img id="bgImg" style="display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:none;z-index:2;pointer-events:none;">
                             <div class="logo" id="logo">
                                 <img src="GRIPT LOGO.png" alt="GRIPT Logo">
                             </div>
@@ -225,8 +235,8 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium mb-2">Logo Size</label>
                     <div class="slider-container">
-                        <input type="range" min="50" max="300" value="120" class="slider" id="logoSizeSlider">
-                        <span id="logoSizeValue" class="slider-value">120px</span>
+                        <input type="range" min="50" max="300" value="207" class="slider" id="logoSizeSlider">
+                        <span id="logoSizeValue" class="slider-value">207px</span>
                     </div>
                 </div>
                 <div class="mb-4">
@@ -283,8 +293,14 @@
                         <span id="textTopValue" class="slider-value">50%</span>
                     </div>
                 </div>
+                <!-- Indent controls -->
+                <div class="mb-4 flex gap-2">
+                    <button id="indentLeftBtn" class="px-3 py-1 bg-slate-700 rounded text-sm">Indent Left</button>
+                    <button id="indentRightBtn" class="px-3 py-1 bg-slate-700 rounded text-sm">Indent Right</button>
+                    <span id="indentValue" class="slider-value">0px</span>
+                </div>
             </div>
-            <button id="downloadBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center mt-4">
+            <button id="downloadBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -328,6 +344,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const imageUpload = document.getElementById('imageUpload');
     const removeBgImage = document.getElementById('removeBgImage');
     const downloadBtn = document.getElementById('downloadBtn');
+    // Indent controls
+    const indentLeftBtn = document.getElementById('indentLeftBtn');
+    const indentRightBtn = document.getElementById('indentRightBtn');
+    const indentValue = document.getElementById('indentValue');
+    let currentIndent = 0;
 
     borderColorPicker.addEventListener('input', function () {
         borderFrame.style.borderColor = this.value;
@@ -373,6 +394,18 @@ document.addEventListener('DOMContentLoaded', function () {
         textOverlay.style.top = this.value + '%';
     });
 
+    // Indent controls
+    indentLeftBtn.addEventListener('click', function () {
+        currentIndent = Math.max(currentIndent - 20, -200);
+        textOverlay.style.textIndent = currentIndent + 'px';
+        indentValue.textContent = currentIndent + 'px';
+    });
+    indentRightBtn.addEventListener('click', function () {
+        currentIndent = Math.min(currentIndent + 20, 200);
+        textOverlay.style.textIndent = currentIndent + 'px';
+        indentValue.textContent = currentIndent + 'px';
+    });
+
     // Background image
     imageUpload.addEventListener('change', function (e) {
         const file = e.target.files[0];
@@ -399,6 +432,8 @@ document.addEventListener('DOMContentLoaded', function () {
     textLineSpacingValue.textContent = (textLineSpacingSlider.value/100).toFixed(2);
     textLeftValue.textContent = textLeftSlider.value + '%';
     textTopValue.textContent = textTopSlider.value + '%';
+    indentValue.textContent = '0px';
+    textOverlay.style.textIndent = '0px';
 
     // Set initial line spacing
     textOverlay.style.lineHeight = (textLineSpacingSlider.value/100).toFixed(2);
