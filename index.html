@@ -69,14 +69,11 @@
             white-space: pre-wrap;
             text-align: center;
             max-width: 80%;
-            /* OUTSIDE STROKE: white, outside, thick */
-            -webkit-text-stroke: 8px #fff;
-            text-stroke: 8px #fff;
-            color: #000;
-            filter:
-                drop-shadow(0 0 2px #fff)
-                drop-shadow(0 0 4px #fff)
-                drop-shadow(0 0 8px #fff);
+            -webkit-text-stroke: 2px #fff;
+            text-stroke: 2px #fff;
+            /* Subtle black shadow only */
+            text-shadow: 2px 2px 6px #000, 0px 4px 12px #000;
+            line-height: 1.2;
         }
         .slider-container {
             display: flex;
@@ -190,10 +187,6 @@
             <div class="mb-6">
                 <h3 class="text-lg font-semibold mb-3 text-blue-300">Background</h3>
                 <div class="mb-4">
-                    <label class="block text-sm font-medium mb-2">Background Color</label>
-                    <input type="color" id="bgColorPicker" value="#1e293b" class="color-picker border-2 border-blue-700">
-                </div>
-                <div class="mb-4">
                     <label class="block text-sm font-medium mb-2">Upload Background Image</label>
                     <div class="flex items-center space-x-2">
                         <label for="imageUpload" class="file-input-label">
@@ -270,6 +263,13 @@
                     </div>
                 </div>
                 <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Text Line Spacing</label>
+                    <div class="slider-container">
+                        <input type="range" min="10" max="200" value="120" class="slider" id="textLineSpacingSlider">
+                        <span id="textLineSpacingValue" class="slider-value">1.20</span>
+                    </div>
+                </div>
+                <div class="mb-4">
                     <label class="block text-sm font-medium mb-2">Text Horizontal Position</label>
                     <div class="slider-container">
                         <input type="range" min="0" max="100" value="50" class="slider" id="textLeftSlider">
@@ -306,7 +306,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const textOverlay = document.getElementById('textOverlay');
     const bgImg = document.getElementById('bgImg');
     // Controls
-    const bgColorPicker = document.getElementById('bgColorPicker');
     const borderColorPicker = document.getElementById('borderColorPicker');
     const borderWidthSlider = document.getElementById('borderWidthSlider');
     const borderWidthValue = document.getElementById('borderWidthValue');
@@ -320,6 +319,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const textColorPicker = document.getElementById('textColorPicker');
     const textSizeSlider = document.getElementById('textSizeSlider');
     const textSizeValue = document.getElementById('textSizeValue');
+    const textLineSpacingSlider = document.getElementById('textLineSpacingSlider');
+    const textLineSpacingValue = document.getElementById('textLineSpacingValue');
     const textLeftSlider = document.getElementById('textLeftSlider');
     const textLeftValue = document.getElementById('textLeftValue');
     const textTopSlider = document.getElementById('textTopSlider');
@@ -328,10 +329,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const removeBgImage = document.getElementById('removeBgImage');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // Controls
-    bgColorPicker.addEventListener('input', function () {
-        thumbnail.style.backgroundColor = this.value;
-    });
     borderColorPicker.addEventListener('input', function () {
         borderFrame.style.borderColor = this.value;
     });
@@ -361,9 +358,11 @@ document.addEventListener('DOMContentLoaded', function () {
     textSizeSlider.addEventListener('input', function () {
         textSizeValue.textContent = this.value + 'px';
         textOverlay.style.fontSize = `${this.value}px`;
-        // Also update stroke width for visible outside stroke
-        textOverlay.style.webkitTextStrokeWidth = Math.floor(this.value/12) + 'px';
-        textOverlay.style.textStrokeWidth = Math.floor(this.value/12) + 'px';
+    });
+    textLineSpacingSlider.addEventListener('input', function () {
+        let spacing = (this.value/100).toFixed(2);
+        textLineSpacingValue.textContent = spacing;
+        textOverlay.style.lineHeight = spacing;
     });
     textLeftSlider.addEventListener('input', function () {
         textLeftValue.textContent = this.value + '%';
@@ -397,8 +396,12 @@ document.addEventListener('DOMContentLoaded', function () {
     logoLeftValue.textContent = logoLeftSlider.value + '%';
     logoTopValue.textContent = logoTopSlider.value + '%';
     textSizeValue.textContent = textSizeSlider.value + 'px';
+    textLineSpacingValue.textContent = (textLineSpacingSlider.value/100).toFixed(2);
     textLeftValue.textContent = textLeftSlider.value + '%';
     textTopValue.textContent = textTopSlider.value + '%';
+
+    // Set initial line spacing
+    textOverlay.style.lineHeight = (textLineSpacingSlider.value/100).toFixed(2);
 
     // Download can use your existing logic if needed
 });
