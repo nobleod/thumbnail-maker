@@ -69,6 +69,9 @@
             white-space: pre-wrap;
             text-align: center;
             max-width: 80%;
+            -webkit-text-stroke: 4px black;
+    text-stroke: 4px black;
+                text-shadow: 6.9px -5.8px 38px rgba(0,0,0,1);
         }
         .text-overlay:hover {
             transform: translate(-50%, -50%) scale(1.02);
@@ -222,8 +225,9 @@
                     <div class="thumbnail-container glow" id="thumbnailContainer">
                         <div class="thumbnail" id="thumbnail">
                             <div class="border-frame" id="borderFrame"></div>
-                            <div class="logo" id="logo">
-                                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                           <div class="logo" id="logo">
+    <img src="GRIPT LOGO.png" alt="GRIPT Logo" style="width:100%;height:100%;object-fit:contain;filter:drop-shadow(0px 9px 38px rgba(0,0,0,1));">
+</div>
                                     <circle cx="50" cy="50" r="40" fill="#3b82f6"/>
                                     <path d="M30,35 L70,35 L70,65 L30,65 Z" fill="white"/>
                                     <path d="M40,45 L60,45 L60,55 L40,55 Z" fill="#3b82f6"/>
@@ -468,24 +472,38 @@
         const downloadBtn = document.getElementById('downloadBtn');
 
         // --- Draggable Functionality ---
-        function makeDraggable(element) {
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            let isDragging = false;
+ function makeDraggable(element) {
+    let startX, startY, initialLeft, initialTop, dragging = false;
 
-            element.onmousedown = dragMouseDown;
-            element.ontouchstart = dragTouchStart;
-
-            function dragMouseDown(e) {
-                e.preventDefault();
-                isDragging = true;
-                // Hide instruction when dragging starts
-                dragInstruction.classList.add('hidden'); 
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                document.onmouseup = closeDragElement;
-                document.onmousemove = elementDrag;
-                element.classList.add('ring', 'ring-blue-500', 'ring-opacity-50');
-            }
+    element.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        dragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        // get current as percent
+        const rect = element.parentElement.getBoundingClientRect();
+        const elRect = element.getBoundingClientRect();
+        initialLeft = ((elRect.left - rect.left) + elRect.width / 2) / rect.width * 100;
+        initialTop = ((elRect.top - rect.top) + elRect.height / 2) / rect.height * 100;
+        document.onmousemove = (ev) => {
+            if (!dragging) return;
+            const dx = ev.clientX - startX;
+            const dy = ev.clientY - startY;
+            // Convert dx/dy to percentage
+            const percentX = dx / rect.width * 100;
+            const percentY = dy / rect.height * 100;
+            element.style.left = (initialLeft + percentX) + '%';
+            element.style.top = (initialTop + percentY) + '%';
+            element.style.transform = 'translate(-50%, -50%)';
+        };
+        document.onmouseup = () => {
+            dragging = false;
+            document.onmousemove = null;
+            document.onmouseup = null;
+        };
+    });
+    // Touch support (optional)
+}
 
             function dragTouchStart(e) {
                 e.preventDefault();
@@ -802,6 +820,11 @@
             const bgColor = bgColorPicker.value;
 
             async function drawElements() {
+                ctx.shadowColor = 'rgba(0,0,0,1)';
+ctx.shadowBlur = 38 * scaleY;
+ctx.shadowOffsetX = 6.9 * scaleX;
+ctx.shadowOffsetY = -5.8 * scaleY;
+                
                 ctx.filter = computedStyle.filter;
 
                 ctx.fillStyle = bgColor;
@@ -884,6 +907,12 @@
                 const startY = textY - (totalTextHeight / 2) + (lineHeight / 2);
 
                 lines.forEach((line, index) => {
+                    ctx.lineWidth = 4 * scaleY; // 4px stroke, scaled
+ctx.strokeStyle = 'black';
+lines.forEach((line, index) => {
+    ctx.strokeText(line, textX, startY + (index * lineHeight));
+    ctx.fillText(line, textX, startY + (index * lineHeight));
+});
                     ctx.fillText(line, textX, startY + (index * lineHeight));
                 });
 
