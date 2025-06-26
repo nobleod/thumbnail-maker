@@ -407,7 +407,7 @@
                     </div>
                 </div>
             </div>
-            <button id="downloadBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center btn">
+            <button id="downloadBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-lg flex items-center just[...]
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                      xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -429,7 +429,73 @@
         const logo = document.getElementById('logo');
         const textOverlay = document.getElementById('textOverlay');
         const thumbnailContainer = document.getElementById('thumbnailContainer');
-        const dragInstruction = document.getElementById('dragInstruction'); // Get the instruction div
+        const dragInstruction = document.getElementById('dragInstruction');
+
+        // --- Smoother Draggable Functionality ---
+        function makeSmoothDraggable(element, dragArea) {
+            let isDragging = false;
+            let animationFrame;
+            let shiftX = 0, shiftY = 0;
+
+            function getPointerCoords(e) {
+                if (e.touches && e.touches.length) {
+                    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+                return { x: e.clientX, y: e.clientY };
+            }
+
+            function onPointerDown(e) {
+                e.preventDefault();
+                isDragging = true;
+                element.setPointerCapture?.(e.pointerId);
+
+                const parentRect = dragArea.getBoundingClientRect();
+                const elemRect = element.getBoundingClientRect();
+                const { x, y } = getPointerCoords(e);
+                shiftX = x - elemRect.left;
+                shiftY = y - elemRect.top;
+
+                function onPointerMove(moveEvent) {
+                    if (!isDragging) return;
+                    const { x: moveX, y: moveY } = getPointerCoords(moveEvent);
+
+                    let newLeft = moveX - parentRect.left - shiftX;
+                    let newTop = moveY - parentRect.top - shiftY;
+
+                    // Clamp inside the container
+                    newLeft = Math.max(0, Math.min(newLeft, dragArea.offsetWidth - element.offsetWidth));
+                    newTop = Math.max(0, Math.min(newTop, dragArea.offsetHeight - element.offsetHeight));
+
+                    if (animationFrame) cancelAnimationFrame(animationFrame);
+                    animationFrame = requestAnimationFrame(() => {
+                        element.style.left = `${newLeft}px`;
+                        element.style.top = `${newTop}px`;
+                    });
+                }
+
+                function onPointerUp() {
+                    isDragging = false;
+                    dragArea.removeEventListener('pointermove', onPointerMove);
+                    dragArea.removeEventListener('pointerup', onPointerUp);
+                    dragArea.removeEventListener('touchmove', onPointerMove);
+                    dragArea.removeEventListener('touchend', onPointerUp);
+                    element.classList.remove('ring', 'ring-blue-500', 'ring-opacity-50');
+                }
+
+                dragArea.addEventListener('pointermove', onPointerMove);
+                dragArea.addEventListener('pointerup', onPointerUp);
+                dragArea.addEventListener('touchmove', onPointerMove);
+                dragArea.addEventListener('touchend', onPointerUp);
+                element.classList.add('ring', 'ring-blue-500', 'ring-opacity-50');
+            }
+
+            element.style.touchAction = "none";
+            element.addEventListener('pointerdown', onPointerDown);
+            element.addEventListener('touchstart', onPointerDown);
+        }
+
+        makeSmoothDraggable(logo, thumbnailContainer);
+        makeSmoothDraggable(textOverlay, thumbnailContainer);
 
         // Color pickers
         const bgColorPicker = document.getElementById('bgColorPicker');
@@ -467,154 +533,10 @@
         // Download button
         const downloadBtn = document.getElementById('downloadBtn');
 
-        // --- Draggable Functionality ---
-        function makeDraggable(element) {
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            let isDragging = false;
-
-            element.onmousedown = dragMouseDown;
-            element.ontouchstart = dragTouchStart;
-
-            function dragMouseDown(e) {
-                e.preventDefault();
-                isDragging = true;
-                // Hide instruction when dragging starts
-                dragInstruction.classList.add('hidden'); 
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                document.onmouseup = closeDragElement;
-                document.onmousemove = elementDrag;
-                element.classList.add('ring', 'ring-blue-500', 'ring-opacity-50');
-            }
-
-            function dragTouchStart(e) {
-                e.preventDefault();
-                isDragging = true;
-                // Hide instruction when dragging starts
-                dragInstruction.classList.add('hidden'); 
-                pos3 = e.touches[0].clientX;
-                pos4 = e.touches[0].clientY;
-                document.ontouchend = closeDragElement;
-                document.ontouchmove = elementTouchDrag;
-                element.classList.add('ring', 'ring-blue-500', 'ring-opacity-50');
-            }
-
-            function elementDrag(e) {
-                e.preventDefault();
-                if (!isDragging) return;
-                pos1 = pos3 - e.clientX;
-                pos2 = pos4 - e.clientY;
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                updateElementPosition();
-            }
-
-            function elementTouchDrag(e) {
-                e.preventDefault();
-                if (!isDragging) return;
-                pos1 = pos3 - e.touches[0].clientX;
-                pos2 = pos4 - e.touches[0].clientY;
-                pos3 = e.touches[0].clientX;
-                pos4 = e.touches[0].clientY;
-                updateElementPosition();
-            }
-
-            function updateElementPosition() {
-                const thumbnailRect = thumbnailContainer.getBoundingClientRect();
-                const elementRect = element.getBoundingClientRect();
-
-                let newTop = element.offsetTop - pos2;
-                let newLeft = element.offsetLeft - pos1;
-
-                newTop = Math.max(0, Math.min(newTop, thumbnailRect.height - elementRect.height));
-                newLeft = Math.max(0, Math.min(newLeft, thumbnailRect.width - elementRect.width));
-
-                element.style.top = newTop + "px";
-                element.style.left = newLeft + "px";
-            }
-
-            function closeDragElement() {
-                isDragging = false;
-                document.onmouseup = null;
-                document.onmousemove = null;
-                document.ontouchend = null;
-                document.ontouchmove = null;
-                element.classList.remove('ring', 'ring-blue-500', 'ring-opacity-50');
-                // We won't show it again on mouseup, only on hover of the container
-            }
-        }
-
-        // Make logo draggable
-        makeDraggable(logo);
-        // Make text draggable
-        makeDraggable(textOverlay);
-
-        // --- Instruction Text Visibility ---
-        thumbnailContainer.addEventListener('mouseenter', function() {
-            // Show instruction only if no dragging has occurred yet (optional: could make a flag)
-            // For simplicity, we'll assume if it's visible, it hasn't been dragged much.
-            // Or you can introduce a boolean flag like 'hasBeenDragged'.
-            if (dragInstruction.classList.contains('hidden') === false) { // Only show if not hidden by a drag
-                dragInstruction.classList.remove('hidden');
-            }
-        });
-
-        thumbnailContainer.addEventListener('mouseleave', function() {
-            // Hide instruction when mouse leaves, unless actively dragging (handled by `makeDraggable`)
-            if (!logo._isDragging && !textOverlay._isDragging) { // Check custom _isDragging flags
-                dragInstruction.classList.add('hidden');
-            }
-        });
-        
-        // Add a flag to draggable elements to check if they are currently being dragged
-        const originalMakeDraggable = makeDraggable;
-        makeDraggable = function(element) {
-            originalMakeDraggable(element); // Call the original function
-            let isDraggingFlag = false; // Internal flag for this specific element
-
-            element.onmousedown = function(e) {
-                isDraggingFlag = true;
-                element._isDragging = true; // Set a public flag on the element
-                dragInstruction.classList.add('hidden'); // Hide instruction on start of any drag
-                originalMakeDraggable.bind(element)(e); // Call original bind
-            };
-
-            element.ontouchstart = function(e) {
-                isDraggingFlag = true;
-                element._isDragging = true; // Set a public flag on the element
-                dragInstruction.classList.add('hidden'); // Hide instruction on start of any drag
-                originalMakeDraggable.bind(element)(e); // Call original bind
-            };
-
-            const originalCloseDragElement = element.onmouseup; // Save original onmouseup
-            element.onmouseup = function(e) {
-                isDraggingFlag = false;
-                element._isDragging = false; // Reset public flag
-                if (originalCloseDragElement) originalCloseDragElement(e); // Call original if it exists
-                
-                // If neither logo nor text is being dragged, and mouse is not over thumbnail, hide.
-                // We actually handle showing/hiding on mouseenter/mouseleave for consistency.
-                // So no need to show here.
-            };
-
-            const originalTouchEnd = element.ontouchend; // Save original ontouchend
-            element.ontouchend = function(e) {
-                isDraggingFlag = false;
-                element._isDragging = false; // Reset public flag
-                if (originalTouchEnd) originalTouchEnd(e); // Call original if it exists
-            };
-        };
-
-        // Re-apply draggable logic with the modified makeDraggable
-        makeDraggable(logo);
-        makeDraggable(textOverlay);
-
-        // Initial state: hide the instruction text
+        // Hide the instruction text by default
         dragInstruction.classList.add('hidden');
 
-
         // --- Event Listeners for Controls ---
-        // ... (rest of your event listeners remain unchanged)
 
         // Update background color
         bgColorPicker.addEventListener('input', function () {
