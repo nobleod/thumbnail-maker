@@ -38,75 +38,46 @@
             transition: all 0.3s ease;
             z-index: 1;
         }
-        .draggable-bg-img {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            max-width: none;
-            user-drag: none;
-            user-select: none;
-            cursor: move;
-            z-index: 2;
-            transform: translate(-50%, -50%) scale(1);
-            pointer-events: auto;
-        }
-        .resize-handle {
-            position: absolute;
-            width: 18px;
-            height: 18px;
-            background: #3b82f6;
-            border-radius: 50%;
-            border: 2px solid #fff;
-            bottom: 8px;
-            right: 8px;
-            cursor: nwse-resize;
-            z-index: 10;
-        }
         .logo {
             position: absolute;
-            cursor: grab;
-            user-select: none;
             width: 120px;
             height: 120px;
-            left: 5%;
+            left: 10%;
             top: 10%;
             transform: translate(-50%, -50%);
             z-index: 3;
+            pointer-events: none;
         }
         .logo img {
             width: 100%;
             height: 100%;
             object-fit: contain;
             filter: drop-shadow(0px 9px 38px rgba(0,0,0,1));
-            pointer-events: none;
             user-select: none;
+            pointer-events: none;
         }
-        .logo:active { cursor: grabbing; }
         .text-overlay {
             position: absolute;
             font-family: 'Open Sans', sans-serif;
             font-weight: 800;
-            color: white;
+            color: #fff;
             font-size: 100px;
-            cursor: grab;
-            user-select: none;
-            left: 50%; top: 50%;
+            left: 50%;
+            top: 50%;
             transform: translate(-50%, -50%);
             z-index: 4;
             white-space: pre-wrap;
             text-align: center;
             max-width: 80%;
-            /* OUTSIDE STROKE SIMULATION - heavy stroke and shadow, white fill */
-            -webkit-text-stroke: 8px black;
-            text-stroke: 8px black;
-            text-shadow:
-                0 0 0 #000,  2px 2px 0 #000, -2px -2px 0 #000,
-                2px -2px 0 #000, -2px 2px 0 #000,
-                4px 4px 8px rgba(0,0,0,0.8);
-            transition: all 0.2s;
-            background: none;
+            /* OUTSIDE STROKE: white, outside, thick */
+            -webkit-text-stroke: 8px #fff;
+            text-stroke: 8px #fff;
+            color: #000;
+            filter:
+                drop-shadow(0 0 2px #fff)
+                drop-shadow(0 0 4px #fff)
+                drop-shadow(0 0 8px #fff);
         }
-        .text-overlay:active { cursor: grabbing; }
         .slider-container {
             display: flex;
             align-items: center;
@@ -198,18 +169,13 @@
                     <div class="thumbnail-container glow" id="thumbnailContainer">
                         <div class="thumbnail" id="thumbnail">
                             <div class="border-frame" id="borderFrame"></div>
-                            <img id="bgImg" class="draggable-bg-img" style="display:none;" draggable="false">
-                            <div id="resizeHandle" class="resize-handle" style="display:none;"></div>
+                            <img id="bgImg" style="display:none;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:none;z-index:2;pointer-events:none;">
                             <div class="logo" id="logo">
                                 <img src="GRIPT LOGO.png" alt="GRIPT Logo">
                             </div>
                             <div class="text-overlay" id="textOverlay">YOUR AWESOME TITLE</div>
                         </div>
                     </div>
-                </div>
-                <div class="mt-4 text-center text-blue-300" id="dragInstruction">
-                    <p>Drag the logo, text, or uploaded image to position them anywhere on your thumbnail.<br>
-                    Use the blue dot on the image to scale it.</p>
                 </div>
             </div>
         </div>
@@ -270,6 +236,20 @@
                         <span id="logoSizeValue" class="slider-value">120px</span>
                     </div>
                 </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Logo Horizontal Position</label>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="100" value="10" class="slider" id="logoLeftSlider">
+                        <span id="logoLeftValue" class="slider-value">10%</span>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Logo Vertical Position</label>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="100" value="10" class="slider" id="logoTopSlider">
+                        <span id="logoTopValue" class="slider-value">10%</span>
+                    </div>
+                </div>
             </div>
             <div class="mb-6">
                 <h3 class="text-lg font-semibold mb-3 text-blue-300">Text</h3>
@@ -287,6 +267,20 @@
                     <div class="slider-container">
                         <input type="range" min="50" max="200" value="100" class="slider" id="textSizeSlider">
                         <span id="textSizeValue" class="slider-value">100px</span>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Text Horizontal Position</label>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="100" value="50" class="slider" id="textLeftSlider">
+                        <span id="textLeftValue" class="slider-value">50%</span>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2">Text Vertical Position</label>
+                    <div class="slider-container">
+                        <input type="range" min="0" max="100" value="50" class="slider" id="textTopSlider">
+                        <span id="textTopValue" class="slider-value">50%</span>
                     </div>
                 </div>
             </div>
@@ -310,9 +304,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const borderFrame = document.getElementById('borderFrame');
     const logo = document.getElementById('logo');
     const textOverlay = document.getElementById('textOverlay');
-    const thumbnailContainer = document.getElementById('thumbnailContainer');
     const bgImg = document.getElementById('bgImg');
-    const resizeHandle = document.getElementById('resizeHandle');
     // Controls
     const bgColorPicker = document.getElementById('bgColorPicker');
     const borderColorPicker = document.getElementById('borderColorPicker');
@@ -320,134 +312,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const borderWidthValue = document.getElementById('borderWidthValue');
     const logoSizeSlider = document.getElementById('logoSizeSlider');
     const logoSizeValue = document.getElementById('logoSizeValue');
+    const logoLeftSlider = document.getElementById('logoLeftSlider');
+    const logoLeftValue = document.getElementById('logoLeftValue');
+    const logoTopSlider = document.getElementById('logoTopSlider');
+    const logoTopValue = document.getElementById('logoTopValue');
     const textInput = document.getElementById('textInput');
     const textColorPicker = document.getElementById('textColorPicker');
     const textSizeSlider = document.getElementById('textSizeSlider');
     const textSizeValue = document.getElementById('textSizeValue');
+    const textLeftSlider = document.getElementById('textLeftSlider');
+    const textLeftValue = document.getElementById('textLeftValue');
+    const textTopSlider = document.getElementById('textTopSlider');
+    const textTopValue = document.getElementById('textTopValue');
     const imageUpload = document.getElementById('imageUpload');
     const removeBgImage = document.getElementById('removeBgImage');
     const downloadBtn = document.getElementById('downloadBtn');
-
-    // --- Draggable Functionality ---
-    function makeDraggable(element) {
-        let dragging = false, offsetX, offsetY;
-        element.addEventListener('mousedown', function (e) {
-            dragging = true;
-            element.style.zIndex = 10;
-            const rect = thumbnailContainer.getBoundingClientRect();
-            const elRect = element.getBoundingClientRect();
-            offsetX = e.clientX - elRect.left;
-            offsetY = e.clientY - elRect.top;
-            function onMouseMove(ev) {
-                if (!dragging) return;
-                let x = ev.clientX - rect.left - offsetX + elRect.width / 2;
-                let y = ev.clientY - rect.top - offsetY + elRect.height / 2;
-                x = Math.max(elRect.width / 2, Math.min(x, rect.width - elRect.width / 2));
-                y = Math.max(elRect.height / 2, Math.min(y, rect.height - elRect.height / 2));
-                element.style.left = (x / rect.width * 100) + '%';
-                element.style.top = (y / rect.height * 100) + '%';
-                element.style.transform = 'translate(-50%, -50%)';
-            }
-            function onMouseUp() {
-                dragging = false;
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-                element.style.zIndex = 3;
-            }
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-        });
-        // Touch support:
-        element.addEventListener('touchstart', function (e) {
-            if (e.touches.length !== 1) return;
-            dragging = true;
-            element.style.zIndex = 10;
-            const rect = thumbnailContainer.getBoundingClientRect();
-            const elRect = element.getBoundingClientRect();
-            offsetX = e.touches[0].clientX - elRect.left;
-            offsetY = e.touches[0].clientY - elRect.top;
-            function onTouchMove(ev) {
-                if (!dragging) return;
-                let x = ev.touches[0].clientX - rect.left - offsetX + elRect.width / 2;
-                let y = ev.touches[0].clientY - rect.top - offsetY + elRect.height / 2;
-                x = Math.max(elRect.width / 2, Math.min(x, rect.width - elRect.width / 2));
-                y = Math.max(elRect.height / 2, Math.min(y, rect.height - elRect.height / 2));
-                element.style.left = (x / rect.width * 100) + '%';
-                element.style.top = (y / rect.height * 100) + '%';
-                element.style.transform = 'translate(-50%, -50%)';
-            }
-            function onTouchEnd() {
-                dragging = false;
-                document.removeEventListener('touchmove', onTouchMove);
-                document.removeEventListener('touchend', onTouchEnd);
-                element.style.zIndex = 3;
-            }
-            document.addEventListener('touchmove', onTouchMove);
-            document.addEventListener('touchend', onTouchEnd);
-        });
-    }
-    makeDraggable(logo);
-    makeDraggable(textOverlay);
-
-    // --- Draggable and Scalable Background Image ---
-    let bgScale = 1, bgDragging = false, bgOffsetX = 0, bgOffsetY = 0, bgImgLeft = 50, bgImgTop = 50, resizing = false, startDist = 0, startScale = 1;
-    function updateBgImg() {
-        bgImg.style.left = bgImgLeft + '%';
-        bgImg.style.top = bgImgTop + '%';
-        bgImg.style.transform = `translate(-50%, -50%) scale(${bgScale})`;
-        resizeHandle.style.left = `calc(${bgImgLeft}% + 60px)`;
-        resizeHandle.style.top = `calc(${bgImgTop}% + 60px)`;
-    }
-    bgImg.addEventListener('mousedown', function(e) {
-        e.preventDefault();
-        bgDragging = true;
-        const rect = thumbnailContainer.getBoundingClientRect();
-        const elRect = bgImg.getBoundingClientRect();
-        bgOffsetX = e.clientX - elRect.left;
-        bgOffsetY = e.clientY - elRect.top;
-        function onMove(ev) {
-            if (!bgDragging) return;
-            let x = ev.clientX - rect.left - bgOffsetX + elRect.width / 2;
-            let y = ev.clientY - rect.top - bgOffsetY + elRect.height / 2;
-            x = Math.max(0, Math.min(x, rect.width));
-            y = Math.max(0, Math.min(y, rect.height));
-            bgImgLeft = (x / rect.width) * 100;
-            bgImgTop = (y / rect.height) * 100;
-            updateBgImg();
-        }
-        function onUp() {
-            bgDragging = false;
-            document.removeEventListener('mousemove', onMove);
-            document.removeEventListener('mouseup', onUp);
-        }
-        document.addEventListener('mousemove', onMove);
-        document.addEventListener('mouseup', onUp);
-    });
-    // Resizing
-    resizeHandle.addEventListener('mousedown', function(e) {
-        e.stopPropagation();
-        resizing = true;
-        startDist = Math.hypot(
-            e.clientX - (bgImg.getBoundingClientRect().left + bgImg.width/2),
-            e.clientY - (bgImg.getBoundingClientRect().top + bgImg.height/2)
-        );
-        startScale = bgScale;
-        function onResize(ev) {
-            if (!resizing) return;
-            const centerX = bgImg.getBoundingClientRect().left + bgImg.width/2;
-            const centerY = bgImg.getBoundingClientRect().top + bgImg.height/2;
-            const dist = Math.hypot(ev.clientX - centerX, ev.clientY - centerY);
-            bgScale = Math.max(0.1, Math.min(5, startScale * (dist / startDist)));
-            updateBgImg();
-        }
-        function onResizeEnd() {
-            resizing = false;
-            document.removeEventListener('mousemove', onResize);
-            document.removeEventListener('mouseup', onResizeEnd);
-        }
-        document.addEventListener('mousemove', onResize);
-        document.addEventListener('mouseup', onResizeEnd);
-    });
 
     // Controls
     bgColorPicker.addEventListener('input', function () {
@@ -465,6 +344,14 @@ document.addEventListener('DOMContentLoaded', function () {
         logo.style.width = `${this.value}px`;
         logo.style.height = `${this.value}px`;
     });
+    logoLeftSlider.addEventListener('input', function () {
+        logoLeftValue.textContent = this.value + '%';
+        logo.style.left = this.value + '%';
+    });
+    logoTopSlider.addEventListener('input', function () {
+        logoTopValue.textContent = this.value + '%';
+        logo.style.top = this.value + '%';
+    });
     textInput.addEventListener('input', function () {
         textOverlay.textContent = this.value;
     });
@@ -474,6 +361,17 @@ document.addEventListener('DOMContentLoaded', function () {
     textSizeSlider.addEventListener('input', function () {
         textSizeValue.textContent = this.value + 'px';
         textOverlay.style.fontSize = `${this.value}px`;
+        // Also update stroke width for visible outside stroke
+        textOverlay.style.webkitTextStrokeWidth = Math.floor(this.value/12) + 'px';
+        textOverlay.style.textStrokeWidth = Math.floor(this.value/12) + 'px';
+    });
+    textLeftSlider.addEventListener('input', function () {
+        textLeftValue.textContent = this.value + '%';
+        textOverlay.style.left = this.value + '%';
+    });
+    textTopSlider.addEventListener('input', function () {
+        textTopValue.textContent = this.value + '%';
+        textOverlay.style.top = this.value + '%';
     });
 
     // Background image
@@ -484,11 +382,6 @@ document.addEventListener('DOMContentLoaded', function () {
             reader.onload = function (event) {
                 bgImg.src = event.target.result;
                 bgImg.style.display = 'block';
-                resizeHandle.style.display = 'block';
-                bgScale = 1;
-                bgImgLeft = 50;
-                bgImgTop = 50;
-                updateBgImg();
             };
             reader.readAsDataURL(file);
         }
@@ -496,15 +389,18 @@ document.addEventListener('DOMContentLoaded', function () {
     removeBgImage.addEventListener('click', function () {
         bgImg.src = "";
         bgImg.style.display = 'none';
-        resizeHandle.style.display = 'none';
     });
 
     // Initialize
     borderWidthValue.textContent = borderWidthSlider.value + 'px';
     logoSizeValue.textContent = logoSizeSlider.value + 'px';
+    logoLeftValue.textContent = logoLeftSlider.value + '%';
+    logoTopValue.textContent = logoTopSlider.value + '%';
     textSizeValue.textContent = textSizeSlider.value + 'px';
+    textLeftValue.textContent = textLeftSlider.value + '%';
+    textTopValue.textContent = textTopSlider.value + '%';
 
-    // Download functionality can be added as per your existing logic, or ask if you want an update
+    // Download can use your existing logic if needed
 });
 </script>
 </body>
